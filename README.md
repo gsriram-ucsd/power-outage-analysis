@@ -92,6 +92,7 @@ I wanted to see how different types of Causes were distributed over the differen
 
 
 *Table 2: Distribution of Cause Modes by U.S Region* 
+
 | CLIMATE.REGION     |   equipment failure |   fuel supply emergency |   intentional attack |   islanding |   public appeal |   severe weather |   system operability disruption |
 | -------------------| --------------------| ------------------------| ---------------------| ------------| ----------------| -----------------| --------------------------------|
 | Central            |                0.03 |                    0.02 |                 0.18 |        0.02 |            0.01 |             0.70 |                            0.05 |
