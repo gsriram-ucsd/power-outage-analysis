@@ -134,7 +134,7 @@ I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this aga
   frameborder="0"
 ></iframe>
 
-In this test, the p-value was very small, much smaller than our cutoff - we reject the null hypothesis. We have evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
+In this test, the p-value was 0.0, much smaller than our cutoff - we reject the null hypothesis. We have evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 #### `CLIMATE.CATEGORY`
 - **Null:** The distribution of Climate Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
 - **Alternate:** The distribution of Climate Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
@@ -156,7 +156,7 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
   frameborder="0"
 ></iframe>
 
-In this test, the p-value greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
+In this test, the p-value (0.5418) was greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 
 ## Hypothesis Testing
 I will be testing whether the distribution of `CAUSE.CATEGORY` when `IS.MORNING` is `True` is different when when it is not. To do quantify this difference, I will be using a TVD for this permutation test.
@@ -183,15 +183,29 @@ For this model, I will be using `U.S_STATE`(categorical), `CLIMATE.REGION` (cate
 I will also be including two engineered features:
 - `COMIND.PERCEN`, the combined commercial and industrial percentage of consumers (quantitative)
 - `ABS.ANOMALY`, the absolute value of the anomaly level (quantitative)
-These features rely on internal data that electricity companies know, as they provide service in the areas where outages happen.
+These features rely on internal data that electricity companies know, as they provide service in the areas where outages happen. Again, we will know this information prior to prediction because these features can be derived from existing company data, as well as live government sources.
 
 I will be predicting `CAUSE.CATEGORY`.
 I will be using the F1 score to evaluate my model, because it is most appropriate for a classifier. Using the F1 score will help us manage out class imbalance (as found in our univariate analysis), and provide us with a way to aggregate precision and recall metrics.
 ## Baseline Model
 For my Baseline model, I will be using Random Forest Model to classify an outage's cause. I will be using the features `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `MONTH` (ordinal), and`POPDEN_URBAN`(quantitative). These were chosen because `U.S_STATE` accounts for variances between states, `CLIMATE.REGION` indicates whether the cause could be man-made or natural. `ANOMALY.LEVEL` accounts for anomalous conditions that may have a one-off influence, and `POPDEN_URBAN` could provide supplementary information - more densely populated regions may have a higher occurence of intentional attacks.
 
+This model achieved an F1 Score of 0.6289, with an accuracy of 0.64 on the test set. This is quite decent for a baseline model.
+
 ## Final Model
 My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN`. I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
+
+I performed grid search to find optimal parameters, and my hyperparameters were:
+```
+{
+'classifier__criterion': 'gini',
+'classifier__max_depth': None,
+'classifier__min_samples_split': 5, 
+'classifier__n_estimators': 200
+}
+```
+My final testing F1 score was 0.6496, a 3% improvement over the baseline. While not a substantial increase, I found this difference to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.67
+I chose not to "roll" for a better score because that would bias us towards the testing dataset. Additionally, I have concerns over the maximum depth being set to `None` - I believe that on a better model, that could lead to overfitting (which is why I used a Random Forest).
 
 ## Fairness
 I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
@@ -200,7 +214,7 @@ I chose the groups for the fairness analysis to be urban density - High Density 
 - **Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
 
 I will be using the absolute difference in F1 Scores as my test statistic in this permutation test.
-My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large. I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
+My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large (0.1695). I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
 <iframe
   src="assets/fairness.html"
   width="800"
