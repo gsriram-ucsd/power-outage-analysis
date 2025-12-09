@@ -50,12 +50,13 @@ I will be working with a subset of the columns provided, mainly because they wil
 *Table 1.1: Cleaned Data*
 
 |    |   YEAR |   MONTH | U.S._STATE   | POSTAL.CODE   | NERC.REGION   | CLIMATE.REGION     | CLIMATE.CATEGORY   | CAUSE.CATEGORY     | CAUSE.CATEGORY.DETAIL   |   OUTAGE.DURATION |   TOTAL.PRICE |   CUSTOMERS.AFFECTED |   ANOMALY.LEVEL |   DEMAND.LOSS.MW |   POPDEN_URBAN |   TOTAL.CUSTOMERS |   TOTAL.SALES |   COM.PERCEN |   IND.PERCEN | OUTAGE.START        | OUTAGE.RESTORATION   |
-|---|-------|--------|-------------|--------------|--------------|-------------------|-------------------|-------------------|------------------------|------------------|--------------|---------------------|----------------|-----------------|---------------|------------------|--------------|-------------|-------------|--------------------|---------------------|
+|--- |------- |-------- |------------- |-------------- |-------------- |------------------- |------------------- |------------------- |------------------------ |------------------ |-------------- |--------------------- |---------------- |----------------- |--------------- |------------------ |-------------- |------------- |------------- |-------------------- |--------------------- |
 |  0 |   2011 |       7 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | nan                     |              3060 |          9.28 |                70000 |            -0.3 |              nan |           2279 |           2595696 |   6.56252e+06 |      32.225  |      32.2024 | 2011-07-01 17:00:00 | 2011-07-03 20:00:00  |
 |  1 |   2014 |       5 | Minnesota    | MN            | MRO           | East North Central | normal             | intentional attack | vandalism               |                 1 |          9.28 |                  nan |            -0.1 |              nan |           2279 |           2640737 |   5.28423e+06 |      34.2104 |      35.7276 | 2014-05-11 18:38:00 | 2014-05-11 18:39:00  |
 |  2 |   2010 |      10 | Minnesota    | MN            | MRO           | East North Central | cold               | severe weather     | heavy wind              |              3000 |          8.15 |                70000 |            -1.5 |              nan |           2279 |           2586905 |   5.22212e+06 |      34.501  |      37.366  | 2010-10-26 20:00:00 | 2010-10-28 22:00:00  |
 |  3 |   2012 |       6 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | thunderstorm            |              2550 |          9.19 |                68200 |            -0.1 |              nan |           2279 |           2606813 |   5.78706e+06 |      33.5433 |      34.4393 | 2012-06-19 04:30:00 | 2012-06-20 23:00:00  |
 |  4 |   2015 |       7 | Minnesota    | MN            | MRO           | East North Central | warm               | severe weather     | nan                     |              1740 |         10.43 |               250000 |             1.2 |              250 |           2279 |           2673531 |   5.97034e+06 |      36.2059 |      29.7795 | 2015-07-18 02:00:00 | 2015-07-19 07:00:00  |
+
 ### Univariate Analysis
 I then perform some analysis to see how single variables are distributed.
 
@@ -90,7 +91,7 @@ We look at some interesting interactions between different features in the data.
 ></iframe>
 
 - I then create a new feature "IS.MORNING" based on the time of day when an Outage occurs, and graph distributions of outage category conditional on this feature.
-- The conditional distributions seem to be relatively similar - I might want to run a test to check that.
+- The conditional distributions seem to be relatively similar - It will be worth exploring this as a possible hypothesis test.
 <iframe
   src="assets/bi2.html"
   width="800"
@@ -99,7 +100,7 @@ We look at some interesting interactions between different features in the data.
 ></iframe>
 
 ### Pivots and Aggregates
-I wanted to see how different types of Causes were distributed over the different regions of the U.S. Interestingly, the Northwest and the Suthwest have high percentages of outages caused by intentional attacks.
+I wanted to see how different types of Causes were distributed over the different regions of the U.S. Interestingly, the Northwest and the Southwest have high percentages of outages caused by intentional attacks.
 
 
 *Table 2: Distribution of Cause Modes by U.S Region* 
@@ -116,7 +117,7 @@ I wanted to see how different types of Causes were distributed over the differen
 | West               |                0.10 |                    0.05 |                 0.15 |        0.14 |            0.04 |             0.33 |                            0.19 |
 | West North Central |                0.06 |                    0.00 |                 0.25 |        0.31 |            0.12 |             0.25 |                            0.00 |
 
-## Analysis of Missingness
+## Assessment of Missingness
 ### NMAR Analysis 
 Looking at the data, it would be prudent to conclude that `OUTAGE.DURATION` is NMAR, simply because the dataset is an aggregation of data, which could mean that some electricity companies may not record data that corresponds to `OUTAGE.DURATION`. If they did not report that value, then the values would be missing.
 
@@ -183,7 +184,7 @@ The TVD is a non-directional test statistic that is of use to our test because w
 ></iframe>
 
 The resulting p-value was `0.0` after 10,000 iterations, meaning that with our significance level of 0.05, we reject the null hypothesis in favor the alternate because we have sufficient evidence to believe that the distribution of Cause Category differs when `IS.MORNING` is `True`, and when it is `False`.
-## A Prediction Problem
+## Framing a Prediction Problem
 **Prediction Problem:** Predict the cause of an Outage.
 This is a multiclass classification problem.
 
@@ -200,7 +201,7 @@ I will be using the F1 score to evaluate my model, because it is most appropriat
 For my Baseline model, I will be using Random Forest Model to classify an outage's cause. I will be using the features `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `MONTH` (ordinal), and`POPDEN_URBAN`(quantitative). These were chosen because `U.S_STATE` accounts for variances between states, `CLIMATE.REGION` indicates whether the cause could be man-made or natural. `ANOMALY.LEVEL` accounts for anomalous conditions that may have a one-off influence, and `POPDEN_URBAN` could provide supplementary information - more densely populated regions may have a higher occurence of intentional attacks.
 `MONTH` is already encoded as numerical data. I one-hot encode all of the categorical data, and scale the numerical data. While not necessary, I do it because it may help interpretability of the model in the future.
 
-This model achieved an F1 Score of 0.5750, with an accuracy of 0.59 on the test set. This is quite decent for a baseline model. 
+This model achieved an F1 Score of 0.5750, with an accuracy of 0.59 on the test set. This is quite decent for a baseline model. It seems to get predicts right a little bit more than half of the time, which should be better than an educated guess - there are seven values we can predict.
 
 ## Final Model
 My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN` (both are quantitative features). I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
@@ -214,10 +215,11 @@ I performed grid search to find optimal parameters, and my hyperparameters were:
 'classifier__n_estimators': 200
 }
 ```
+
 My final model's testing F1 score was 0.6178, a 7.4% improvement over the baseline. While not a substantial increase, I found this difference to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.64. 
 I chose not to "roll" for a better score because that would bias us towards the testing dataset.
 
-## Fairness
+## Fairness Analysis
 I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
   
 - **Null:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are roughly the same, and minute variations occur due to random chance.
