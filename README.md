@@ -56,6 +56,7 @@ I then perform some analysis to see how single variables are distributed.
 <iframe
   src="assets/uni1.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -64,6 +65,7 @@ I then perform some analysis to see how single variables are distributed.
 <iframe
   src="assets/uni2.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -75,6 +77,7 @@ We look at some interesting interactions between different features in the data.
 <iframe
   src="assets/bi1.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -82,6 +85,7 @@ We look at some interesting interactions between different features in the data.
 <iframe
   src="assets/bi2.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -118,6 +122,7 @@ I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this aga
 <iframe
   src="assets/missing_1_base.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -125,6 +130,7 @@ I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this aga
 <iframe
   src="assets/missing_1_perm.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -138,6 +144,7 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
 <iframe
   src="assets/missing_2_base.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -145,6 +152,7 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
 <iframe
   src="assets/missing_2_perm.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -161,6 +169,7 @@ The TVD is a non-directional test statistic that is of use to our test because w
 <iframe
   src="assets/hyp_all.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
 
@@ -195,5 +204,6 @@ My significance level will be 0.05. I performed 10000 iterations of a permutatio
 <iframe
   src="assets/fairness.html"
   width="800"
+  height="600"
   frameborder="0"
 ></iframe>
