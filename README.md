@@ -7,7 +7,9 @@ In this analysis, I work with a data set of major power outages from January 200
 
 First, I will process and clean the data, selecting features that I believe will most relevant to my analysis. This will give me a baseline for the underlying trends in the data. Then, I will determine missingness mechanisms in the dataset - this might be helpful should I choose to impute values.
 
-I will then investigate my research problem: How can we classify how long it will take for an outage to be resolved, and what factors are most important to making this prediction? I will attempt to build a model that predicts whether an outage is Extended or Rapid in its resolution. This is important, because it can help consumers anticipate the rate of recovery for outages, and because it can help utility companies understand what influences the recovery time. This will allow them to allocate resources efficiently. It can also allow utility companies to plan infrastructure upgrades to mitigate any future outages.
+
+Specifically, this is the question I wish to investigate: 
+I will then investigate my research problem: How can we predict the cause of an outage? What features are most important to making this prediction? I will attempt to build a model that predicts the cause of an outage. This is important, because it can help utility companies ancitapate the cause of an outage without sending in field workers, thereby saving time and leading to a potentially faster outage resolution. It can also allow utility companies to plan infrastructure upgrades to mitigate any future outages.
 
 I will be working with a subset of the columns provided, mainly because they will be of value to my analysis and the process of answering my research question.
 
@@ -132,7 +134,12 @@ I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this aga
   frameborder="0"
 ></iframe>
 
-In this test, the p-value was very small, much smaller than our cutoff - we reject the null hypothesis.
+In this test, the p-value was very small, much smaller than our cutoff - we reject the null hypothesis. We have evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
+#### `CLIMATE.CATEGORY`
+**Null:** The distribution of Climate Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
+**Alternate:** The distribution of Climate Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
+
+- Here is the distribution as visualized from the dataset
 
 <iframe
   src="assets/missing_2_base.html"
@@ -141,6 +148,7 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
   frameborder="0"
 ></iframe>
 
+- Here is the empirical distribution of TVDs. The Observed value is indicated by the red line. 
 <iframe
   src="assets/missing_2_perm.html"
   width="800"
@@ -148,7 +156,16 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
   frameborder="0"
 ></iframe>
 
+In this test, the p-value greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 
+## Hypothesis Testing
+I will be testing whether the distribution of `CAUSE.CATEGORY` when `IS.MORNING` is `True` is different when when it is not. To do quantify this difference, I will be using a TVD for this permutation test.
+The TVD is a non-directional test statistic that is of use to our test because we are dealing with categorical distributions. My p-value cutoff will be `0.05`.
+
+**Null:** The distribution of Cause Category is the same when `IS.MORNING` is `True`, and when it is `False`.
+**Alternate:** The distribution of Cause Category differs when `IS.MORNING` is `True`, and when it is `False`.
+
+- Here is the empirical distribution if TVDs. The red line indicates the observed value from the data.
 <iframe
   src="assets/hyp_all.html"
   width="800"
@@ -156,6 +173,34 @@ In this test, the p-value was very small, much smaller than our cutoff - we reje
   frameborder="0"
 ></iframe>
 
+The resulting p-value was `0.0` after 10,000 iterations, meaning that with our significance level of 0.05, we reject the null hypothesis in favor the alternate because we have sufficient evidence to believe that the distribution of Cause Category differs when `IS.MORNING` is `True`, and when it is `False`.
+## A Prediction Problem
+**Prediction Problem:** Predict the cause of an Outage.
+This is a multiclass classification problem.
+
+For this model, I will be using `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `POPDEN_URBAN`(quantitative), and `MONTH` (ordinal). These columns represent the data we know at the time of prediction - they will not change as the outage progresses, not will they be immediately be affected in the event of an outage.
+
+I will also be including two engineered features:
+- `COMIND.PERCEN`, the combined commercial and industrial percentage of consumers (quantitative)
+- `ABS.ANOMALY`, the absolute value of the anomaly level (quantitative)
+These features rely on internal data that electricity companies know, as they provide service in the areas where outages happen.
+
+I will be predicting `CAUSE.CATEGORY`.
+I will be using the F1 score to evaluate my model, because it is most appropriate for a classifier. Using the F1 score will help us manage out class imbalance (as found in our univariate analysis), and provide us with a way to aggregate precision and recall metrics.
+## Baseline Model
+For my Baseline model, I will be using Random Forest Model to classify an outage's cause. I will be using the features `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `MONTH` (ordinal), and`POPDEN_URBAN`(quantitative). These were chosen because `U.S_STATE` accounts for variances between states, `CLIMATE.REGION` indicates whether the cause could be man-made or natural. `ANOMALY.LEVEL` accounts for anomalous conditions that may have a one-off influence, and `POPDEN_URBAN` could provide supplementary information - more densely populated regions may have a higher occurence of intentional attacks.
+
+## Final Model
+My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN`. I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
+
+## Fairness
+I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
+
+**Null:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are roughly the same, and minute variations occur due to random chance.
+**Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
+
+I will be using the absolute difference in F1 Scores as my test statistic in this permutation test.
+My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large. I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
 <iframe
   src="assets/fairness.html"
   width="800"
