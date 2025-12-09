@@ -7,8 +7,6 @@ In this analysis, I work with a data set of major power outages from January 200
 
 First, I will process and clean the data, selecting features that I believe will most relevant to my analysis. This will give me a baseline for the underlying trends in the data. Then, I will determine missingness mechanisms in the dataset - this might be helpful should I choose to impute values.
 
-
-Specifically, this is the question I wish to investigate: 
 I will then investigate my research problem: How can we predict the cause of an outage? What features are most important to making this prediction? I will attempt to build a model that predicts the cause of an outage. This is important, because it can help utility companies ancitapate the cause of an outage without sending in field workers, thereby saving time and leading to a potentially faster outage resolution. It can also allow utility companies to plan infrastructure upgrades to mitigate any future outages.
 
 I will be working with a subset of the columns provided, mainly because they will be of value to my analysis and the process of answering my research question.
@@ -49,10 +47,20 @@ I will be working with a subset of the columns provided, mainly because they wil
 
 3. I then look for `DEMAND.LOSS.MW` values that are equal to zero, replacing them with `np.nan`. This is because we expect any outage to lose *some* amount of peak demand, even if for an instant. Other features, such as `CUSTOMERS.AFFECTED` and `OUTAGE.DURATION` are not modified this way, because it is possible for electricy companies to have backup systems, which would mean that no customers would be affected, with a resolution time of `0` minutes.
 
+*Table 1.1: Cleaned Data*
+
+|    |   YEAR |   MONTH | U.S._STATE   | POSTAL.CODE   | NERC.REGION   | CLIMATE.REGION     | CLIMATE.CATEGORY   | CAUSE.CATEGORY     | CAUSE.CATEGORY.DETAIL   |   OUTAGE.DURATION |   TOTAL.PRICE |   CUSTOMERS.AFFECTED |   ANOMALY.LEVEL |   DEMAND.LOSS.MW |   POPDEN_URBAN |   TOTAL.CUSTOMERS |   TOTAL.SALES |   COM.PERCEN |   IND.PERCEN | OUTAGE.START        | OUTAGE.RESTORATION   |
+|---|-------|--------|-------------|--------------|--------------|-------------------|-------------------|-------------------|------------------------|------------------|--------------|---------------------|----------------|-----------------|---------------|------------------|--------------|-------------|-------------|--------------------|---------------------|
+|  0 |   2011 |       7 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | nan                     |              3060 |          9.28 |                70000 |            -0.3 |              nan |           2279 |           2595696 |   6.56252e+06 |      32.225  |      32.2024 | 2011-07-01 17:00:00 | 2011-07-03 20:00:00  |
+|  1 |   2014 |       5 | Minnesota    | MN            | MRO           | East North Central | normal             | intentional attack | vandalism               |                 1 |          9.28 |                  nan |            -0.1 |              nan |           2279 |           2640737 |   5.28423e+06 |      34.2104 |      35.7276 | 2014-05-11 18:38:00 | 2014-05-11 18:39:00  |
+|  2 |   2010 |      10 | Minnesota    | MN            | MRO           | East North Central | cold               | severe weather     | heavy wind              |              3000 |          8.15 |                70000 |            -1.5 |              nan |           2279 |           2586905 |   5.22212e+06 |      34.501  |      37.366  | 2010-10-26 20:00:00 | 2010-10-28 22:00:00  |
+|  3 |   2012 |       6 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | thunderstorm            |              2550 |          9.19 |                68200 |            -0.1 |              nan |           2279 |           2606813 |   5.78706e+06 |      33.5433 |      34.4393 | 2012-06-19 04:30:00 | 2012-06-20 23:00:00  |
+|  4 |   2015 |       7 | Minnesota    | MN            | MRO           | East North Central | warm               | severe weather     | nan                     |              1740 |         10.43 |               250000 |             1.2 |              250 |           2279 |           2673531 |   5.97034e+06 |      36.2059 |      29.7795 | 2015-07-18 02:00:00 | 2015-07-19 07:00:00  |
 ### Univariate Analysis
 I then perform some analysis to see how single variables are distributed.
 
 - I first see how outages are distributed by Climate Region
+    - It seems that most outages occur in the Northeast Climate Region.
 <iframe
   src="assets/uni1.html"
   width="800"
@@ -82,6 +90,7 @@ We look at some interesting interactions between different features in the data.
 ></iframe>
 
 - I then create a new feature "IS.MORNING" based on the time of day when an Outage occurs, and graph distributions of outage category conditional on this feature.
+- The conditional distributions seem to be relatively similar - I might want to run a test to check that.
 <iframe
   src="assets/bi2.html"
   width="800"
@@ -156,7 +165,7 @@ In this test, the p-value was 0.0, much smaller than our cutoff - we reject the 
   frameborder="0"
 ></iframe>
 
-In this test, the p-value (0.5418) was greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
+In this test, the p-value (0.5324) was greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 
 ## Hypothesis Testing
 I will be testing whether the distribution of `CAUSE.CATEGORY` when `IS.MORNING` is `True` is different when when it is not. To do quantify this difference, I will be using a TVD for this permutation test.
@@ -189,23 +198,24 @@ I will be predicting `CAUSE.CATEGORY`.
 I will be using the F1 score to evaluate my model, because it is most appropriate for a classifier. Using the F1 score will help us manage out class imbalance (as found in our univariate analysis), and provide us with a way to aggregate precision and recall metrics.
 ## Baseline Model
 For my Baseline model, I will be using Random Forest Model to classify an outage's cause. I will be using the features `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `MONTH` (ordinal), and`POPDEN_URBAN`(quantitative). These were chosen because `U.S_STATE` accounts for variances between states, `CLIMATE.REGION` indicates whether the cause could be man-made or natural. `ANOMALY.LEVEL` accounts for anomalous conditions that may have a one-off influence, and `POPDEN_URBAN` could provide supplementary information - more densely populated regions may have a higher occurence of intentional attacks.
+`MONTH` is already encoded as numerical data. I one-hot encode all of the categorical data, and scale the numerical data. While not necessary, I do it because it may help interpretability of the model in the future.
 
-This model achieved an F1 Score of 0.6289, with an accuracy of 0.64 on the test set. This is quite decent for a baseline model.
+This model achieved an F1 Score of 0.5750, with an accuracy of 0.59 on the test set. This is quite decent for a baseline model. 
 
 ## Final Model
-My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN`. I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
+My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN` (both are quantitative features). I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
 
 I performed grid search to find optimal parameters, and my hyperparameters were:
 ```
 {
-'classifier__criterion': 'gini',
-'classifier__max_depth': None,
+'classifier__criterion': 'entropy',
+'classifier__max_depth': 50,
 'classifier__min_samples_split': 5, 
 'classifier__n_estimators': 200
 }
 ```
-My final testing F1 score was 0.6496, a 3% improvement over the baseline. While not a substantial increase, I found this difference to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.67
-I chose not to "roll" for a better score because that would bias us towards the testing dataset. Additionally, I have concerns over the maximum depth being set to `None` - I believe that on a better model, that could lead to overfitting (which is why I used a Random Forest).
+My final model's testing F1 score was 0.6178, a 7.4% improvement over the baseline. While not a substantial increase, I found this difference to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.64. 
+I chose not to "roll" for a better score because that would bias us towards the testing dataset.
 
 ## Fairness
 I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
@@ -214,7 +224,7 @@ I chose the groups for the fairness analysis to be urban density - High Density 
 - **Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
 
 I will be using the absolute difference in F1 Scores as my test statistic in this permutation test.
-My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large (0.1695). I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
+My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large (0.425). I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
 <iframe
   src="assets/fairness.html"
   width="800"
