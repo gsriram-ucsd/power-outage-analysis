@@ -49,13 +49,13 @@ I will be working with a subset of the columns provided, mainly because they wil
 
 *Table 1.1: Cleaned Data*
 
-|    |   YEAR |   MONTH | U.S._STATE   | POSTAL.CODE   | NERC.REGION   | CLIMATE.REGION     | CLIMATE.CATEGORY   | CAUSE.CATEGORY     | CAUSE.CATEGORY.DETAIL   |   OUTAGE.DURATION |   TOTAL.PRICE |   CUSTOMERS.AFFECTED |   ANOMALY.LEVEL |   DEMAND.LOSS.MW |   POPDEN_URBAN |   TOTAL.CUSTOMERS |   TOTAL.SALES |   COM.PERCEN |   IND.PERCEN | OUTAGE.START        | OUTAGE.RESTORATION   |
-|--- |------- |-------- |------------- |-------------- |-------------- |------------------- |------------------- |------------------- |------------------------ |------------------ |-------------- |--------------------- |---------------- |----------------- |--------------- |------------------ |-------------- |------------- |------------- |-------------------- |--------------------- |
-|  0 |   2011 |       7 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | nan                     |              3060 |          9.28 |                70000 |            -0.3 |              nan |           2279 |           2595696 |   6.56252e+06 |      32.225  |      32.2024 | 2011-07-01 17:00:00 | 2011-07-03 20:00:00  |
-|  1 |   2014 |       5 | Minnesota    | MN            | MRO           | East North Central | normal             | intentional attack | vandalism               |                 1 |          9.28 |                  nan |            -0.1 |              nan |           2279 |           2640737 |   5.28423e+06 |      34.2104 |      35.7276 | 2014-05-11 18:38:00 | 2014-05-11 18:39:00  |
-|  2 |   2010 |      10 | Minnesota    | MN            | MRO           | East North Central | cold               | severe weather     | heavy wind              |              3000 |          8.15 |                70000 |            -1.5 |              nan |           2279 |           2586905 |   5.22212e+06 |      34.501  |      37.366  | 2010-10-26 20:00:00 | 2010-10-28 22:00:00  |
-|  3 |   2012 |       6 | Minnesota    | MN            | MRO           | East North Central | normal             | severe weather     | thunderstorm            |              2550 |          9.19 |                68200 |            -0.1 |              nan |           2279 |           2606813 |   5.78706e+06 |      33.5433 |      34.4393 | 2012-06-19 04:30:00 | 2012-06-20 23:00:00  |
-|  4 |   2015 |       7 | Minnesota    | MN            | MRO           | East North Central | warm               | severe weather     | nan                     |              1740 |         10.43 |               250000 |             1.2 |              250 |           2279 |           2673531 |   5.97034e+06 |      36.2059 |      29.7795 | 2015-07-18 02:00:00 | 2015-07-19 07:00:00  |
+|    |   YEAR |   MONTH | U.S._STATE   | POSTAL.CODE   | ...  | IND.PERCEN | OUTAGE.START        | OUTAGE.RESTORATION   |
+|--- |------- |-------- |------------- |-------------- |----  |----------- |-------------------- |--------------------- |
+|  0 |   2011 |       7 | Minnesota    | MN            | ...  |    32.2024 | 2011-07-01 17:00:00 | 2011-07-03 20:00:00  |
+|  1 |   2014 |       5 | Minnesota    | MN            | ...  |    35.7276 | 2014-05-11 18:38:00 | 2014-05-11 18:39:00  |
+|  2 |   2010 |      10 | Minnesota    | MN            | ...  |    37.366  | 2010-10-26 20:00:00 | 2010-10-28 22:00:00  |
+|  3 |   2012 |       6 | Minnesota    | MN            | ...  |    34.4393 | 2012-06-19 04:30:00 | 2012-06-20 23:00:00  |
+|  4 |   2015 |       7 | Minnesota    | MN            | ...  |    29.7795 | 2015-07-18 02:00:00 | 2015-07-19 07:00:00  |
 
 ### Univariate Analysis
 I then perform some analysis to see how single variables are distributed.
