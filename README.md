@@ -115,8 +115,8 @@ To determine if the data is MAR, I would need to recover or collect the details 
 ### Missingness Dependency
 I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this against `CAUSE.CATEGORY`, and then, `CLIMATE.CATEGORY`. I will use a p-value cutoff of `0.05`
 #### `CAUSE.CATEGORY`
-**Null:** The distribution of Cause Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
-**Alternate:** The distribution of Cause Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
+- **Null:** The distribution of Cause Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
+- **Alternate:** The distribution of Cause Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
 
 - Here is the distribution as visualized from the dataset
 <iframe
@@ -136,8 +136,8 @@ I will focus on the distribution of `DEMAND.LOSS.MW`. I will first test this aga
 
 In this test, the p-value was very small, much smaller than our cutoff - we reject the null hypothesis. We have evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 #### `CLIMATE.CATEGORY`
-**Null:** The distribution of Climate Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
-**Alternate:** The distribution of Climate Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
+- **Null:** The distribution of Climate Category is the same when `DEMAND.LOSS.MW` is missing, and when it is not.
+- **Alternate:** The distribution of Climate Category is different when `DEMAND.LOSS.MW` is missing, and when it is not.
 
 - Here is the distribution as visualized from the dataset
 
@@ -162,10 +162,10 @@ In this test, the p-value greater than our cutoff - we fail to reject the null h
 I will be testing whether the distribution of `CAUSE.CATEGORY` when `IS.MORNING` is `True` is different when when it is not. To do quantify this difference, I will be using a TVD for this permutation test.
 The TVD is a non-directional test statistic that is of use to our test because we are dealing with categorical distributions. My p-value cutoff will be `0.05`.
 
-**Null:** The distribution of Cause Category is the same when `IS.MORNING` is `True`, and when it is `False`.
-**Alternate:** The distribution of Cause Category differs when `IS.MORNING` is `True`, and when it is `False`.
+- **Null:** The distribution of Cause Category is the same when `IS.MORNING` is `True`, and when it is `False`.
+- **Alternate:** The distribution of Cause Category differs when `IS.MORNING` is `True`, and when it is `False`.
 
-- Here is the empirical distribution if TVDs. The red line indicates the observed value from the data.
+- Here is the empirical distribution of TVDs. The red line indicates the observed value from the data.
 <iframe
   src="assets/hyp_all.html"
   width="800"
@@ -195,9 +195,9 @@ My Final model includes all features from the baseline model, plus `ABS.ANOMALY`
 
 ## Fairness
 I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
-
-**Null:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are roughly the same, and minute variations occur due to random chance.
-**Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
+  
+- **Null:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are roughly the same, and minute variations occur due to random chance.
+- **Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
 
 I will be using the absolute difference in F1 Scores as my test statistic in this permutation test.
 My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large. I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
