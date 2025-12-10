@@ -166,7 +166,7 @@ In this test, the p-value was 0.0, much smaller than our cutoff - we reject the 
   frameborder="0"
 ></iframe>
 
-In this test, the p-value (0.5324) was greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
+In this test, the p-value (0.5412) was greater than our cutoff - we fail to reject the null hypothesis. We do not have conclusive evidence to believe that the distribution of Cause Category when Demand Loss is missing is significantly different from when it is not missing.
 
 ## Hypothesis Testing
 I will be testing whether the distribution of `CAUSE.CATEGORY` when `IS.MORNING` is `True` is different when when it is not. To do quantify this difference, I will be using a TVD for this permutation test.
@@ -188,11 +188,11 @@ The resulting p-value was `0.0` after 10,000 iterations, meaning that with our s
 **Prediction Problem:** Predict the cause of an Outage.
 This is a multiclass classification problem.
 
-For this model, I will be using `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `POPDEN_URBAN`(quantitative), and `MONTH` (ordinal). These columns represent the data we know at the time of prediction - they will not change as the outage progresses, not will they be immediately be affected in the event of an outage.
+For this model, I will be using `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `POPDEN_URBAN`(quantitative), `MONTH` (ordinal), and `YEAR` (ordinal). These columns represent the data we know at the time of prediction - they will not change as the outage progresses, not will they be immediately be affected in the event of an outage.
 
 I will also be including two engineered features:
 - `COMIND.PERCEN`, the combined commercial and industrial percentage of consumers (quantitative)
-- `ABS.ANOMALY`, the absolute value of the anomaly level (quantitative)
+- `START.HOUR`, accounts for minute differences in causes (attacks could happen later in the day) (ordinal)
 These features rely on internal data that electricity companies know, as they provide service in the areas where outages happen. Again, we will know this information prior to prediction because these features can be derived from existing company data, as well as live government sources.
 
 I will be predicting `CAUSE.CATEGORY`.
@@ -201,23 +201,22 @@ I will be using the F1 score to evaluate my model, because it is most appropriat
 For my Baseline model, I will be using Random Forest Model to classify an outage's cause. I will be using the features `U.S_STATE`(categorical), `CLIMATE.REGION` (categorical), `ANOMALY.LEVEL` (quantitative), `MONTH` (ordinal), and`POPDEN_URBAN`(quantitative). These were chosen because `U.S_STATE` accounts for variances between states, `CLIMATE.REGION` indicates whether the cause could be man-made or natural. `ANOMALY.LEVEL` accounts for anomalous conditions that may have a one-off influence, and `POPDEN_URBAN` could provide supplementary information - more densely populated regions may have a higher occurence of intentional attacks.
 `MONTH` is already encoded as numerical data. I one-hot encode all of the categorical data, and scale the numerical data. While not necessary, I do it because it may help interpretability of the model in the future.
 
-This model achieved an F1 Score of 0.5750, with an accuracy of 0.59 on the test set. This is quite decent for a baseline model. It seems to get predicts right a little bit more than half of the time, which should be better than an educated guess - there are seven values we can predict.
+This model achieved an F1 Score of 0.5604, with an accuracy of 0.58 on the test set. This is quite decent for a baseline model. It seems to get predicts right a little bit more than half of the time, which should be better than an educated guess - there are seven values we can predict.
 
 ## Final Model
-My Final model includes all features from the baseline model, plus `ABS.ANOMALY` and `COMIND.PERCEN` (both are quantitative features). I chose to engineer `ABS.ANOMALY` because I realized that the anomaly level really only defines the "strangeness" of the weather by its magnititude - values greater than 0.5 and lesser than -0.5 are considered an anomaly. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire.
+My Final model includes all features from the baseline model, plus `START.HOUR`(ordinal) `COMIND.PERCEN` (quantitative), and `YEAR` (ordinal). I chose to engineer `START.HOUR` because I noticed that the distribution of causes differed by start hour -  for example, most attacks happened at midnight. This could help the model by providing a proxy for more data. `COMIND.PERCEN` was engineered to represent the relative industrial density in an area - people tend to live in areas with more favorable climates, while industries require large amounts of space in more rural settings, where conditions may be more dire. I included the year to account for longer-term variations in climate/cause effects.
 
 I performed grid search to find optimal parameters, and my hyperparameters were:
 ```
 {
-'classifier__criterion': 'entropy',
-'classifier__max_depth': 50,
+'classifier__criterion': 'gini',
+'classifier__max_depth': 20,
 'classifier__min_samples_split': 5, 
 'classifier__n_estimators': 200
 }
 ```
 
-My final model's testing F1 score was 0.6178, a 7.4% improvement over the baseline. While not a substantial increase, I found this difference to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.64. 
-I chose not to "roll" for a better score because that would bias us towards the testing dataset.
+My final model's testing F1 score was 0.6723, a 19.94% improvement over the baseline. While the final score was still not great, I found the increase to be consistent across multiple train-test splits. Not a great model, but not bad either. The accuracy also increased similarly, to 0.69. 
 
 ## Fairness Analysis
 I chose the groups for the fairness analysis to be urban density - High Density versus Low Density. The goal is to see whether there is any significant difference between the F1 scores when my model predicts on High-Density versus Low-Density areas. High-Density is characterized as having a `POPDEN.URBAN` greater than 2000.
@@ -226,7 +225,7 @@ I chose the groups for the fairness analysis to be urban density - High Density 
 - **Alternate:** F1 Scores when outages occur in High-Density areas versus Low-Density areas are different, and are not caused by random variation.
 
 I will be using the absolute difference in F1 Scores as my test statistic in this permutation test.
-My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very large (0.425). I fail to reject the null - there is no significant difference between the F1 scores for High and Low Density areas.
+My significance level will be 0.05. I performed 10000 iterations of a permutation test, and my p-value was very small (0.0318). I reject the null - there is significant difference between the F1 scores for High and Low Density areas.
 <iframe
   src="assets/fairness.html"
   width="800"
